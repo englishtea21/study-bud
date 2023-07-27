@@ -37,7 +37,11 @@
             </svg>
             {{room.participants.all.count}} Joined
         </a>
-        <p class="roomListRoom__topic">{{room.topic.name}}</p>
+            {% for topic in room.topics.all %}
+            <p class="roomListRoom__topic">
+                {{topic.name}}
+            </p>
+            {% endfor %}
     </div>
 </div>
 {% endfor %}

@@ -85,20 +85,27 @@ def home(request):
     # print(f'q unquoted=[{q}]')
 
     rooms = Room.objects.filter(
-        Q(topic__name__icontains=q) |
-        Q(name__icontains=q) |
+        Q(topics__name__icontains=q)
+        |
+        Q(name__icontains=q)
+        |
         Q(description__icontains=q)
-        # Q(host__icontains=q)
-    )
+        |
+        Q(host__username__icontains=q)
+        |
+        Q(host__name__icontains=q)
+    ).distinct()
 
+    topics_count = Topic.objects.all().count()
     topics = Topic.objects.all()[0:5]
     room_count = rooms.count()
     # добавляем функционал поиска по ленте недавнего
     rooms_messages = Message.objects.filter(
-        Q(room__topic__name__icontains=q)
+        Q(room__topics__name__icontains=q)
     )
 
-    context = {'rooms': rooms, 'topics': topics, 'room_count': room_count, 'rooms_messages': rooms_messages}
+    context = {'rooms': rooms, 'topics': topics, 'topics_count': topics_count, 'room_count': room_count,
+               'rooms_messages': rooms_messages}
     return render(request, 'base/home.html', context)
 
 
@@ -127,23 +134,33 @@ def user_profile(request, pk):
     user = User.objects.get(pk=pk)
     rooms = user.room_set.all()
     rooms_messages = user.message_set.all()
-    topics = Topic.objects.all()
-    context = {'user': user, 'rooms': rooms, 'rooms_messages': rooms_messages, 'topics': topics}
+    # topics = Topic.objects.all()
+    topics = Topic.objects.filter(rooms__in=rooms).distinct()
+    # topics_count = Topic.objects.all().count()
+    topics_count = topics.count()
+    context = {'user': user, 'rooms': rooms, 'topics_count': topics_count, 'rooms_messages': rooms_messages,
+               'topics': topics}
     return render(request, 'base/profile.html', context)
 
 
 @login_required(login_url='/login')
 def create_room(request):
     form = RoomForm()
-    topics = Topic.objects.all()
+    topics_available = Topic.objects.all()
 
     if request.method == 'POST':
-        topic_name = request.POST.get('topic')
-        topic, created = Topic.objects.get_or_create(name=topic_name)
+        topics_ids = request.POST.getlist('topics')
+
+        topics = []
+
+        for topic_id in topics_ids:
+            try:
+                topics.append(Topic.objects.get(pk=topic_id))
+            except Topic.DoesNotExist:
+                pass
 
         room = Room(
             host=request.user,
-            topic=topic,
             name=request.POST.get('name'),
             description=request.POST.get('description')
         )
@@ -151,23 +168,11 @@ def create_room(request):
         room.save()
 
         room.participants.add(request.user)
+        room.topics.add(*topics)
 
-        # roomRoom.objects.create(
-        #     host=request.user,
-        #     topic=topic,
-        #     name=request.POST.get('name'),
-        #     description=request.POST.get('description')
-        # )
-        # form = RoomForm(request.POST)
-        # if form.is_valid():
-        #     room = form.save(commit=False)
-        #     room.host = request.user
-        #     room.save()
-        # Хост является участником по умолчанию
-        # room.participants.add(request.user)
         return redirect('home')
 
-    context = {'form': form, 'topics': topics, 'create': True}
+    context = {'form': form, 'topics_available': topics_available, 'create': True}
     return render(request, 'base/room_form.html', context)
 
 
@@ -175,23 +180,26 @@ def create_room(request):
 def update_room(request, pk):
     room = Room.objects.get(id=pk)
     form = RoomForm(instance=room)
-    topics = Topic.objects.all()
+    topics_available = Topic.objects.all()
 
     if request.user != room.host:
         return HttpResponse('You are not allowed here!')
 
     if request.method == 'POST':
-        topic_name = request.POST.get('topic')
-        topic, created = Topic.objects.get_or_create(name=topic_name)
+        topics_names = request.POST.get('topics')
+        topics = []
+        for topic_name in topics_names:
+            topic, created = Topic.objects.get_or_create(name=topic_name)
+            topics.append(topic)
 
         # Check if the data has changed
         if (
                 room.name != request.POST.get('name') or
-                room.topic != topic or
+                room.topics != topics or
                 room.description != request.POST.get('description')
         ):
             room.name = request.POST.get('name')
-            room.topic = topic
+            room.topics = topics
             room.description = request.POST.get('description')
             room.save()
         # else:
@@ -199,7 +207,7 @@ def update_room(request, pk):
 
         return redirect(reverse('room', args=[room.id]))
 
-    context = {'form': form, 'topics': topics, 'room': room, 'create': False}
+    context = {'form': form, 'topics_available': topics_available, 'room': room, 'create': False}
     return render(request, 'base/room_form.html', context)
 
 

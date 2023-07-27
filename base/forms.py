@@ -1,15 +1,26 @@
 from django.forms import ModelForm
-from .models import User, Room
+from django import forms
+from .models import User, Room, Topic
 from django.contrib.auth.forms import UserCreationForm
 
 
 # для кастомной модели пользователя нужно менять форму регистрации
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
-        model=User
+        model = User
         fields = ['name', 'username', 'email', 'password1', 'password2']
 
+
 class RoomForm(ModelForm):
+    # name = forms.TextInput()
+    # description = forms.TextInput()
+    topics = forms.ModelMultipleChoiceField(
+        required=True,
+        queryset=Topic.objects.all(),
+        widget=forms.SelectMultiple(
+            attrs={'data-placeholder': 'Search for items...'}),
+    )
+
     class Meta:
         model = Room
         fields = '__all__'
