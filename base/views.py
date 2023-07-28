@@ -151,6 +151,10 @@ def create_room(request):
     if request.method == 'POST':
         topics_ids = request.POST.getlist('topics')
 
+        # максимальное количество тем: 5
+        # if len(topics_ids)>5:
+        #     return
+
         topics = []
 
         for topic_id in topics_ids:
@@ -267,7 +271,7 @@ def topics_page(request):
 def activities_page(request):
     q = request.GET.get('q') if request.GET.get('q') is not None else ''
 
-    rooms_messages = rooms_messages = Message.objects.all();
+    rooms_messages = rooms_messages = Message.objects.all()
 
     context = {'rooms_messages': rooms_messages}
     return render(request, 'base/activity.html', context)
