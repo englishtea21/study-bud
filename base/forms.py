@@ -34,6 +34,7 @@ class RoomForm(ModelForm):
                     'data-placeholder': 'Start typing ...',
                     # Only trigger autocompletion after 3 characters have been typed
                     'data-minimum-input-length': 1,
+                    'data-maximum-selection-length': 3,
                 },
             )
         }
