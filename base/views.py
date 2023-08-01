@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib.auth import authenticate, login, logout
 # для кастомной модели пользователя вместо встроенной формы регистрации будем использовать кастомную
 # from django.contrib.auth.forms import UserCreationForm
@@ -97,7 +97,7 @@ def home(request):
     ).distinct()
 
     topics_count = Topic.objects.all().count()
-    topics = Topic.objects.all()[0:5]
+    topics = Topic.objects.annotate(Count('rooms')).order_by('-rooms__count')[0:5]
     room_count = rooms.count()
     # добавляем функционал поиска по ленте недавнего
     rooms_messages = Message.objects.filter(
@@ -135,7 +135,7 @@ def user_profile(request, pk):
     rooms = user.room_set.all()
     rooms_messages = user.message_set.all()
     # topics = Topic.objects.all()
-    topics = Topic.objects.filter(rooms__in=rooms).distinct()
+    topics = Topic.objects.filter(rooms__in=rooms).distinct().annotate(Count('rooms')).order_by('-rooms__count')
     # topics_count = Topic.objects.all().count()
     topics_count = topics.count()
     context = {'user': user, 'rooms': rooms, 'topics_count': topics_count, 'rooms_messages': rooms_messages,
@@ -263,7 +263,7 @@ def topics_page(request):
 
     topics = Topic.objects.filter(
         Q(name__icontains=q)
-    )
+    ).annotate(Count('rooms')).order_by('-rooms__count')
     context = {'topics': topics}
     return render(request, 'base/topics.html', context)
 

@@ -80,7 +80,9 @@
                     <div class="room__details">
                         {{room.description}}
                     </div>
-                    <span class="room__topics">{{room.topic}}</span>
+                    {% for topic in room.topics.all %}
+                    <span class="room__topics">{{topic}}</span>
+                    {% endfor %}
                 </div>
                 <div class="room__conversation">
                     <div class="threads scroll">
