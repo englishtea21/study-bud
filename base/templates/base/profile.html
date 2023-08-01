@@ -13,7 +13,11 @@
             <div class="profile">
                 <div class="profile__avatar">
                     <div class="avatar avatar--large active">
+                        {% if user.profile_picture %}
                         <img src="{{user.profile_picture.url}}"/>
+                        {% else %}
+                        <img src="/static/images/avatar.svg/"/>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="profile__info">

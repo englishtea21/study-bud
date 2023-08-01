@@ -72,7 +72,11 @@
                         <p>Hosted By</p>
                         <a href="{% url 'user-profile' room.host.id %}" class="room__author">
                             <div class="avatar avatar--small">
+                                {% if room.host.profile_picture %}
                                 <img src="{{room.host.profile_picture.url}}"/>
+                                {% else %}
+                                <img src="/static/images/avatar.svg/"/>
+                                {% endif %}
                             </div>
                             <span>@{{room.host}}</span>
                         </a>
@@ -92,7 +96,11 @@
                                 <div class="thread__author">
                                     <a href="{% url 'user-profile' message.user %}" class="thread__authorInfo">
                                         <div class="avatar avatar--small">
+                                            {% if message.user.profile_picture %}
                                             <img src="{{message.user.profile_picture.url}}"/>
+                                            {% else %}
+                                            <img src="/static/images/avatar.svg/"/>
+                                            {% endif %}
                                         </div>
                                         <span>@{{message.user.username}}</span>
                                     </a>
@@ -140,7 +148,11 @@
                 {% for user in participants %}
                 <a href="{% url 'user-profile' user.id %}" class="participant">
                     <div class="avatar avatar--medium">
+                        {% if user.profile_picture %}
                         <img src="{{user.profile_picture.url}}"/>
+                        {% else %}
+                        <img src="/static/images/avatar.svg/"/>
+                        {% endif %}
                     </div>
                     <p>
                         {{user.name}}
