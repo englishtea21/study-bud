@@ -1,16 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from . import managers
 
 
 class User(AbstractUser):
-    name = models.CharField(max_length=200, null=True)
+    name = models.CharField(max_length=200, null=False, blank=False)
     email = models.EmailField(unique=True, null=False, blank=False)
     bio = models.TextField(null=True, blank=True, max_length=500)
 
-    profile_picture = models.ImageField(null=False, blank=True)
+    profile_picture = models.ImageField(null=True, blank=True)
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ['name']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'name']
 
     def __str__(self):
         return str(self.username)
@@ -55,6 +56,7 @@ class Message(models.Model):
     updated = models.DateTimeField(auto_now=True)
     # auto_now_add=True <=> сохраняет момент создания
     created = models.DateTimeField(auto_now_add=True)
+    # response_to = models.ForeignKey()
 
     class Meta:
         # задает сортировку объектов в коллекции по двум параметрам
