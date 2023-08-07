@@ -1075,6 +1075,12 @@ a {
   justify-content: space-between;
 }
 
+.thread__actions{
+  display: grid;
+  grid-auto-flow: column;
+  column-gap: 3px;
+}
+
 .thread__top svg {
   fill: var(--color-dark-light);
 }

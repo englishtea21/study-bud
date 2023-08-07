@@ -116,11 +116,20 @@ def room(request, pk):
     participants = room.participants.all()
 
     if request.method == 'POST':
+
+        message_id = request.POST.get('message_id')
+        try:
+            reply_to_id = int(message_id)
+        except ValueError:
+            reply_to_id = None
+
         message = Message.objects.create(
             user=request.user,
             room=room,
             # body - имя поля в форме с POST запросом
-            body=request.POST.get('body')
+            body=request.POST.get('body'),
+            # ответить можно только на то же сообщение в комнате
+            reply_to=rooms_messages.filter(id=reply_to_id).first()
         )
         # добавляем пользователя в комнату после его сообщения
         room.participants.add(request.user)

@@ -67,3 +67,37 @@ if (photoInput)
 // Scroll to Bottom
 const conversationThread = document.querySelector(".room__box");
 if (conversationThread) conversationThread.scrollTop = conversationThread.scrollHeight;
+
+//Message reply
+const messageForm = document.querySelector('.room__message form');
+const messageContainer = document.querySelector('.room__conversation');
+const messageIdField = messageForm.querySelector('#message_id');
+const messageField = messageForm.querySelector('#message_field');
+
+messageIdField.setAttribute('style', 'display:none');
+
+allMessages = messageContainer.querySelectorAll('.thread');
+
+allMessages.forEach(function(message){
+    const messageReplyButton = message.querySelector('.thread__reply');
+    const messageId = messageReplyButton.getAttribute('data-message-id');
+
+    messageReplyButton.addEventListener('click', function(event) {
+      //  alert('click!');
+    messageIdField.setAttribute('value', messageId);
+
+    const messageUserInfo = messageReplyButton.parentElement.querySelector('.thread__author');
+    messageField.setAttribute('placeholder', `Write your message to ${messageUserInfo.querySelector('a span').textContent}, posted ${messageUserInfo.querySelector('.thread__date').textContent}`);
+  });
+})
+
+// Add event listener to the input field
+messageField.addEventListener('keydown', function(event) {
+  if (event.keyCode === 13) { // 13 is the key code for the Enter button
+    event.preventDefault(); // Prevent the default form submission
+    // You can perform any additional actions or validation here
+    // For example, you can access the form and submit it
+    messageForm.submit();
+    messageForm.submit();
+  }
+});

@@ -56,7 +56,7 @@ class Message(models.Model):
     updated = models.DateTimeField(auto_now=True)
     # auto_now_add=True <=> сохраняет момент создания
     created = models.DateTimeField(auto_now_add=True)
-    # response_to = models.ForeignKey()
+    reply_to = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
         # задает сортировку объектов в коллекции по двум параметрам
