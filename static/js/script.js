@@ -83,11 +83,10 @@ allMessages.forEach(function(message){
     const messageId = messageReplyButton.getAttribute('data-message-id');
 
     messageReplyButton.addEventListener('click', function(event) {
-      //  alert('click!');
-    messageIdField.setAttribute('value', messageId);
+      messageIdField.setAttribute('value', messageId);
 
-    const messageUserInfo = messageReplyButton.parentElement.querySelector('.thread__author');
-    messageField.setAttribute('placeholder', `Write your message to ${messageUserInfo.querySelector('a span').textContent}, posted ${messageUserInfo.querySelector('.thread__date').textContent}`);
+      const messageUserInfo = message.querySelector('.thread__author');
+      messageField.setAttribute('placeholder', `Write your message to ${messageUserInfo.querySelector('a span').textContent}, posted ${messageUserInfo.querySelector('.thread__date').textContent}`);
   });
 })
 
