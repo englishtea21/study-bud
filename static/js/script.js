@@ -42,6 +42,28 @@
 //   });
 // }
 
+// Scroll to element
+function scrollToElement(targetElement, scrollView) {
+  const scrollViewRect = scrollView.getBoundingClientRect();
+  const targetElementRect = targetElement.getBoundingClientRect();
+  if (targetElementRect.top < scrollViewRect.top || targetElementRect.bottom > scrollViewRect.bottom) {
+    // scrollview отображает контент относительно родительского контейнера,
+    // поэтому нужно учесть положение scrollview относительно родителя и вычесть его из положения целевого элемента
+    scrollView.scrollTop = targetElement.offsetTop - scrollView.offsetTop;
+  }
+}
+
+// Highlight animation
+function highlight(element, highlightClass, timeInterval = 500) {
+  element.classList.add(highlightClass);
+
+  setTimeout(function () {
+    element.classList.remove(highlightClass);
+  }, timeInterval);
+}
+
+
+
 // Menu
 
 const dropdownMenu = document.querySelector(".dropdown-menu");
@@ -64,9 +86,10 @@ if (photoInput)
     }
   };
 
-// Scroll to Bottom
-const conversationThread = document.querySelector(".room__box");
-if (conversationThread) conversationThread.scrollTop = conversationThread.scrollHeight;
+// Scroll to bottom
+// const conversationThread = document.querySelector(".room__box");
+const conversationThread = document.querySelector(".threads");
+if (conversationThread) conversationThread.scrollBottom = conversationThread.scrollHeight;
 
 //Message reply
 const messageForm = document.querySelector('.room__message form');
@@ -78,20 +101,35 @@ messageIdField.setAttribute('style', 'display:none');
 
 allMessages = messageContainer.querySelectorAll('.thread');
 
-allMessages.forEach(function(message){
-    const messageReplyButton = message.querySelector('.thread__reply');
-    const messageId = messageReplyButton.getAttribute('data-message-id');
+allMessages.forEach(function (message) {
+  // Scroll messages to replying after click on replied to ...
+  const linkToRepliedMessage = message.querySelector('.message_link__reply_to');
 
-    messageReplyButton.addEventListener('click', function(event) {
-      messageIdField.setAttribute('value', messageId);
+  if (linkToRepliedMessage)
+    linkToRepliedMessage.addEventListener('click', function (event) {
+      const repliedMessageId = linkToRepliedMessage.getAttribute('data-message-reply-to-id');
+      const repliedMessage = messageContainer.querySelector(
+        `[data-message-id="${repliedMessageId}"]`
+      ).closest('.thread');
 
-      const messageUserInfo = message.querySelector('.thread__author');
-      messageField.setAttribute('placeholder', `Write your message to ${messageUserInfo.querySelector('a span').textContent}, posted ${messageUserInfo.querySelector('.thread__date').textContent}`);
+      scrollToElement(targetElement = repliedMessage, scrollView = conversationThread);
+
+      highlight(repliedMessage, 'highlight');
+    });
+
+  const messageReplyButton = message.querySelector('.thread__reply');
+  const messageId = messageReplyButton.getAttribute('data-message-id');
+
+  messageReplyButton.addEventListener('click', function (event) {
+    messageIdField.setAttribute('value', messageId);
+
+    const messageUserInfo = message.querySelector('.thread__author');
+    messageField.setAttribute('placeholder', `Write your message to ${messageUserInfo.querySelector('a span').textContent}, posted ${messageUserInfo.querySelector('.thread__date').textContent}`);
   });
 })
 
 // Add event listener to the input field
-messageField.addEventListener('keydown', function(event) {
+messageField.addEventListener('keydown', function (event) {
   if (event.keyCode === 13) { // 13 is the key code for the Enter button
     event.preventDefault(); // Prevent the default form submission
     // You can perform any additional actions or validation here
