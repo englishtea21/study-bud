@@ -1,0 +1,10 @@
+{
+    "label": "Run Django Server",
+    "type": "shell",
+    "command": "python manage.py runserver",
+    "group": {
+      "kind": "build",
+      "isDefault": true
+    },
+    "problemMatcher": []
+  }
