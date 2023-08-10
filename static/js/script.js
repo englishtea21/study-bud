@@ -62,6 +62,44 @@ function highlight(element, highlightClass, timeInterval = 1000) {
   }, timeInterval);
 }
 
+// Clear form
+function clearForm(myFormElement) {
+
+  var elements = myFormElement.elements;
+
+  // myFormElement.reset();
+
+  for (i = 0; i < elements.length; i++) {
+
+    field_type = elements[i].type.toLowerCase();
+
+    switch (field_type) {
+
+      case "text":
+      case "password":
+      case "textarea":
+      case "hidden":
+
+        elements[i].value = "";
+        break;
+
+      case "radio":
+      case "checkbox":
+        if (elements[i].checked) {
+          elements[i].checked = false;
+        }
+        break;
+
+      case "select-one":
+      case "select-multi":
+        elements[i].selectedIndex = -1;
+        break;
+
+      default:
+        break;
+    }
+  }
+}
 
 
 // Menu
@@ -94,10 +132,12 @@ if (conversationThread) conversationThread.scrollBottom = conversationThread.scr
 //Message reply
 const messageForm = document.querySelector('.room__message form');
 const messageContainer = document.querySelector('.room__conversation');
-const messageIdField = messageForm.querySelector('#message_id');
+const messageReplyIdField = messageForm.querySelector('#message_reply_id');
+const messageEditIdField = messageForm.querySelector('#message_edit_id');
 const messageField = messageForm.querySelector('#message_field');
 
-messageIdField.setAttribute('style', 'display:none');
+messageReplyIdField.style = 'display:none';
+messageEditIdField.style = 'display:none';
 
 allMessages = messageContainer.querySelectorAll('.thread');
 
@@ -107,6 +147,7 @@ allMessages.forEach(function (message) {
 
   if (linkToRepliedMessage)
     linkToRepliedMessage.addEventListener('click', function (event) {
+
       const repliedMessageId = linkToRepliedMessage.getAttribute('data-message-reply-to-id');
       const repliedMessage = messageContainer.querySelector(
         `[data-message-id="${repliedMessageId}"]`
@@ -118,14 +159,37 @@ allMessages.forEach(function (message) {
     });
 
   const messageReplyButton = message.querySelector('.thread__reply');
-  const messageId = messageReplyButton.getAttribute('data-message-id');
+  const messageEditButton = message.querySelector('.thread__edit');
+  const messageId = message.getAttribute('data-message-id');
 
-  messageReplyButton.addEventListener('click', function (event) {
-    messageIdField.setAttribute('value', messageId);
+  if (messageReplyButton)
+    messageReplyButton.addEventListener('click', function (event) {
+      // clearForm(messageForm);
+      messageEditIdField.value = ""
+      messageField.value = ""
 
-    const messageUserInfo = message.querySelector('.thread__author');
-    messageField.setAttribute('placeholder', `Write your message to ${messageUserInfo.querySelector('a span').textContent}, posted ${messageUserInfo.querySelector('.thread__date').textContent}`);
-  });
+
+      highlight(message, 'highlight');
+
+      messageReplyIdField.value = messageId;
+
+      const messageUserInfo = message.querySelector('.thread__author');
+      messageField.placeholder = `Write your message to ${messageUserInfo.querySelector('a span').innerText}, posted ${messageUserInfo.querySelector('.thread__date').innerText}`;
+    });
+
+
+  if (messageEditButton)
+    messageEditButton.addEventListener('click', function (event) {
+      // clearForm(messageForm);
+      messageReplyIdField.value = ""
+
+
+      highlight(message, 'highlight');
+
+      messageEditIdField.value = messageId;
+
+      messageField.value = message.querySelector('.thread__details').innerText;
+    })
 })
 
 // Add event listener to the input field
@@ -135,6 +199,6 @@ messageField.addEventListener('keydown', function (event) {
     // You can perform any additional actions or validation here
     // For example, you can access the form and submit it
     messageForm.submit();
-    messageForm.submit();
+    // messageField.focus();
   }
 });
