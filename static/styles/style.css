@@ -1105,8 +1105,10 @@ a {
 
 .highlight {
   animation-name: highlight-animation;
-  animation-duration: 1s;
-  animation-fill-mode: forwards;
+  animation-duration: 0.5s;
+  animation-timing-function: ease;
+  animation-iteration-count: 2;
+  animation-direction: reverse;
 }
 
 @keyframes highlight-animation {

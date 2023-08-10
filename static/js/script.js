@@ -54,7 +54,7 @@ function scrollToElement(targetElement, scrollView) {
 }
 
 // Highlight animation
-function highlight(element, highlightClass, timeInterval = 500) {
+function highlight(element, highlightClass, timeInterval = 1000) {
   element.classList.add(highlightClass);
 
   setTimeout(function () {
