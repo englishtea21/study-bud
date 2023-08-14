@@ -42,6 +42,7 @@
 //   });
 // }
 
+
 // Scroll to element
 function scrollToElement(targetElement, scrollView) {
   const scrollViewRect = scrollView.getBoundingClientRect();
@@ -63,43 +64,43 @@ function highlight(element, highlightClass, timeInterval = 1000) {
 }
 
 // Clear form
-function clearForm(myFormElement) {
+// function clearForm(myFormElement) {
 
-  var elements = myFormElement.elements;
+//   var elements = myFormElement.elements;
 
-  // myFormElement.reset();
+//   // myFormElement.reset();
 
-  for (i = 0; i < elements.length; i++) {
+//   for (i = 0; i < elements.length; i++) {
 
-    field_type = elements[i].type.toLowerCase();
+//     field_type = elements[i].type.toLowerCase();
 
-    switch (field_type) {
+//     switch (field_type) {
 
-      case "text":
-      case "password":
-      case "textarea":
-      case "hidden":
+//       case "text":
+//       case "password":
+//       case "textarea":
+//       case "hidden":
 
-        elements[i].value = "";
-        break;
+//         elements[i].value = "";
+//         break;
 
-      case "radio":
-      case "checkbox":
-        if (elements[i].checked) {
-          elements[i].checked = false;
-        }
-        break;
+//       case "radio":
+//       case "checkbox":
+//         if (elements[i].checked) {
+//           elements[i].checked = false;
+//         }
+//         break;
 
-      case "select-one":
-      case "select-multi":
-        elements[i].selectedIndex = -1;
-        break;
+//       case "select-one":
+//       case "select-multi":
+//         elements[i].selectedIndex = -1;
+//         break;
 
-      default:
-        break;
-    }
-  }
-}
+//       default:
+//         break;
+//     }
+//   }
+// }
 
 
 // Menu
@@ -125,80 +126,128 @@ if (photoInput)
   };
 
 // Scroll to bottom
-// const conversationThread = document.querySelector(".room__box");
 const conversationThread = document.querySelector(".threads");
 if (conversationThread) conversationThread.scrollBottom = conversationThread.scrollHeight;
 
+// Clear button
+class ClearButton {
+  #clearButton;
+  constructor(tag = 'span', html_class = 'clear-button', innerHTML = '&#10006;', field, onClearButton, ...args) {
+    // console.log(`tag=`);
+    this.#clearButton = document.createElement(tag);
+    this.#clearButton.className = html_class;
+    this.#clearButton.innerHTML = innerHTML;
+
+    field.parentNode.insertBefore(this.#clearButton, field.nextSibling);
+
+    this.#clearButton.addEventListener('click', () => onClearButton.apply(this, args));
+  }
+
+  get clearButton() {
+    return this.clearButton;
+  }
+}
+
+const headerSearchField = document.querySelector('header > div > form.header__search > label input');
+const headerSearchFieldClearButton = new ClearButton(undefined, undefined, undefined, headerSearchField, () => {
+  headerSearchField.value = '';
+})
+// console.log(headerSearchField);
+
 //Message reply
 const messageForm = document.querySelector('.room__message form');
-const messageContainer = document.querySelector('.room__conversation');
-const messageReplyIdField = messageForm.querySelector('#message_reply_id');
-const messageEditIdField = messageForm.querySelector('#message_edit_id');
-const messageField = messageForm.querySelector('#message_field');
 
-messageReplyIdField.style = 'display:none';
-messageEditIdField.style = 'display:none';
+if (messageForm) {
 
-allMessages = messageContainer.querySelectorAll('.thread');
+  const messageContainer = document.querySelector('.room__conversation');
+  const messageReplyIdField = messageForm.querySelector('#message_reply_id');
+  const messageEditIdField = messageForm.querySelector('#message_edit_id');
+  const messageField = messageForm.querySelector('#message_field');
 
-allMessages.forEach(function (message) {
-  // Scroll messages to replying after click on replied to ...
-  const linkToRepliedMessage = message.querySelector('.message_link__reply_to');
+  messageReplyIdField.style = 'display:none';
+  messageEditIdField.style = 'display:none';
 
-  if (linkToRepliedMessage)
-    linkToRepliedMessage.addEventListener('click', function (event) {
-
-      const repliedMessageId = linkToRepliedMessage.getAttribute('data-message-reply-to-id');
-      const repliedMessage = messageContainer.querySelector(
-        `[data-message-id="${repliedMessageId}"]`
-      ).closest('.thread');
-
-      scrollToElement(targetElement = repliedMessage, scrollView = conversationThread);
-
-      highlight(repliedMessage, 'highlight');
-    });
-
-  const messageReplyButton = message.querySelector('.thread__reply');
-  const messageEditButton = message.querySelector('.thread__edit');
-  const messageId = message.getAttribute('data-message-id');
-
-  if (messageReplyButton)
-    messageReplyButton.addEventListener('click', function (event) {
-      // clearForm(messageForm);
-      messageEditIdField.value = ""
-      messageField.value = ""
-
-
-      highlight(message, 'highlight');
-
-      messageReplyIdField.value = messageId;
-
-      const messageUserInfo = message.querySelector('.thread__author');
-      messageField.placeholder = `Write your message to ${messageUserInfo.querySelector('a span').innerText}, posted ${messageUserInfo.querySelector('.thread__date').innerText}`;
-    });
-
-
-  if (messageEditButton)
-    messageEditButton.addEventListener('click', function (event) {
-      // clearForm(messageForm);
-      messageReplyIdField.value = ""
-
-
-      highlight(message, 'highlight');
-
-      messageEditIdField.value = messageId;
-
-      messageField.value = message.querySelector('.thread__details').innerText;
-    })
-})
-
-// Add event listener to the input field
-messageField.addEventListener('keydown', function (event) {
-  if (event.keyCode === 13) { // 13 is the key code for the Enter button
-    event.preventDefault(); // Prevent the default form submission
-    // You can perform any additional actions or validation here
-    // For example, you can access the form and submit it
-    messageForm.submit();
-    // messageField.focus();
+  function clearMessageForm(placeholder = "Write your message...") {
+    messageField.value = "";
+    messageReplyIdField.value = "";
+    messageEditIdField.value = "";
+    messageField.placeholder = placeholder;
   }
-});
+
+  allMessages = messageContainer.querySelectorAll('.thread');
+
+  allMessages.forEach(function (message) {
+    // Scroll messages to replying after click on replied to ...
+    const linkToRepliedMessage = message.querySelector('.message_link__reply_to');
+
+    if (linkToRepliedMessage)
+      linkToRepliedMessage.addEventListener('click', function (event) {
+
+        const repliedMessageId = linkToRepliedMessage.getAttribute('data-message-reply-to-id');
+        const repliedMessage = messageContainer.querySelector(
+          `[data-message-id="${repliedMessageId}"]`
+        ).closest('.thread');
+
+        scrollToElement(targetElement = repliedMessage, scrollView = conversationThread);
+
+        highlight(repliedMessage, 'highlight');
+      });
+
+    const messageReplyButton = message.querySelector('.thread__reply');
+    const messageEditButton = message.querySelector('.thread__edit');
+    const messageId = message.getAttribute('data-message-id');
+
+    if (messageReplyButton)
+      messageReplyButton.addEventListener('click', function (event) {
+
+        clearMessageForm(placeholder = "");
+
+        highlight(message, 'highlight');
+
+        messageReplyIdField.value = messageId;
+
+        const messageUserInfo = message.querySelector('.thread__author');
+        messageField.placeholder = `Write your message to ${messageUserInfo.querySelector('a span').innerText}, posted ${messageUserInfo.querySelector('.thread__date').innerText}`;
+      });
+
+
+    if (messageEditButton)
+      messageEditButton.addEventListener('click', function (event) {
+        // clearForm(messageForm);
+
+        clearMessageForm(placeholder = "");
+
+        highlight(message, 'highlight');
+
+        messageEditIdField.value = messageId;
+
+        messageField.value = message.querySelector('.thread__details').innerText;
+      })
+  })
+
+  let messageFieldClearButton = new ClearButton(undefined, undefined, undefined, messageField, clearMessageForm, undefined);
+
+  // let clearButton = document.createElement('span');
+  // clearButton.className = 'clear-button';
+  // clearButton.innerHTML = '&#10006;';
+
+  // // Добавляем крестик внутри поля ввода
+  // messageField.parentNode.insertBefore(clearButton, messageField.nextSibling);
+
+  // // Добавляем обработчик события клика на крестик
+  // clearButton.addEventListener('click', clearMessageForm);
+
+
+
+  // Add event listener to the input field
+  messageField.addEventListener('keydown', function (event) {
+    if (event.keyCode === 13) { // 13 is the key code for the Enter button
+      event.preventDefault(); // Prevent the default form submission
+      // You can perform any additional actions or validation here
+      // For example, you can access the form and submit it
+      messageForm.submit();
+      // messageField.focus();
+    }
+  });
+
+}

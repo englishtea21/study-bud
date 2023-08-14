@@ -108,7 +108,10 @@
                                     {% if message.reply_to is not None %}
                                     <span class="message_link__reply_to" data-message-reply-to-id="{{message.reply_to.id}}">replied to {{message.reply_to.user}}</span>
                                     {% endif %}
-                                    <span class="thread__date">{{message.created|timesince}} ago</span>
+                                    <span class="thread__date">posted {{message.created|timesince}} ago</span>
+                                    {% comment %} {% if message.updated is not None %}
+                                    <span class="thread__date">updated {{message.updated|timesince}} ago</span>
+                                    {% endif %} {% endcomment %}
                                 </div>
                                 <div class="thread__actions">
                                     {% if message.user == request.user %}
@@ -156,7 +159,9 @@
             <div class="room__message">
                 <form action="" method="post">
                     {% csrf_token %}
-                    <input type="text" id="message_field" name="body" placeholder="Write your message here...">
+                    <div class="input-wrapper">
+                        <input type="text" id="message_field" name="body" placeholder="Write your message here...">
+                    </div>
                     <input type="text" id="message_reply_id" name="message_reply_id" placeholder="Message id to reply">
                     <input type="text" id="message_edit_id" name="message_edit_id" placeholder="Message id to edit">
                 </form>

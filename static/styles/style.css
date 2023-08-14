@@ -1146,23 +1146,37 @@ a {
   background: transparent;
 }
 
-.room__message>form>input {
-  resize: none;
+.room__message>form>.input-wrapper {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
   background-color: var(--color-dark-light);
-  color: var(--color-light);
-  border: none;
-  outline: none;
   border-radius: 0.7rem;
   height: 4.5rem;
   width: 100%;
   margin-top: -1rem;
   padding: 1.2rem;
-  font-size: 1.4rem;
-  font-weight: 500;
   position: relative;
 }
 
-.room__message>form>input::placeholder {
+.input-wrapper input{
+  background: transparent;
+  color: var(--color-light);
+  border: none;
+  outline: none;
+  font-size: 1.4rem;
+  font-weight: 500;
+  resize: none;
+  flex: 1 ;
+}
+
+/* cross clear button on a field */
+.clear-button {
+  cursor: pointer;
+  margin-right: 1rem;
+}
+
+.room__message>form>.input-wrapper>input::placeholder {
   color: var(--color-light-gray);
 }
 

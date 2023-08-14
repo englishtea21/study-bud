@@ -60,7 +60,7 @@ class Message(models.Model):
 
     class Meta:
         # задает сортировку объектов в коллекции по двум параметрам
-        ordering = ['-updated', '-created']
+        ordering = ['-created']
 
     def __str__(self):
         return self.body[:self.max_str_length]
