@@ -10,8 +10,8 @@ class User(AbstractUser):
 
     profile_picture = models.ImageField(null=True, blank=True)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'name']
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username", "name"]
 
     def __str__(self):
         return str(self.username)
@@ -32,7 +32,17 @@ class Room(models.Model):
     # blank=True <=> разрешается оставить пустое поле при заполнении формы
     # null=True <=> разрешается хранить объект с пустым значением поля
     description = models.TextField(null=True, blank=True, max_length=500)
-    participants = models.ManyToManyField(User, related_name='rooms', blank=True)
+    participants = models.ManyToManyField(User, related_name="rooms", blank=True)
+    upvotes = models.ManyToManyField(
+        User,
+        related_name="upvotes",
+        blank=True,
+    )
+    downvotes = models.ManyToManyField(
+        User,
+        related_name="downvotes",
+        blank=True,
+    )
     # auto_now=True <=> сохраняет время обновления
     updated = models.DateTimeField(auto_now=True)
     # auto_now_add=True <=> сохраняет момент создания
@@ -40,7 +50,10 @@ class Room(models.Model):
 
     class Meta:
         # задает сортировку объектов в коллекции по двум параметрам
-        ordering = ['-updated', '-created']
+        ordering = ["-updated", "-created"]
+
+    def getvotes(self):
+        return self.upvotes.count() - self.downvotes.count()
 
     def __str__(self):
         return self.name
@@ -56,11 +69,13 @@ class Message(models.Model):
     updated = models.DateTimeField(auto_now=True)
     # auto_now_add=True <=> сохраняет момент создания
     created = models.DateTimeField(auto_now_add=True)
-    reply_to = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
+    reply_to = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.SET_NULL
+    )
 
     class Meta:
         # задает сортировку объектов в коллекции по двум параметрам
-        ordering = ['-created']
+        ordering = ["-created"]
 
     def __str__(self):
-        return self.body[:self.max_str_length]
+        return self.body[: self.max_str_length]

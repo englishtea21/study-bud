@@ -708,6 +708,19 @@ a {
   justify-content: space-between;
 }
 
+.roomListRoom__votes {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: 1em;
+}
+
+.roomListRoom__votes .vote-arrow {
+  /* transform: rotateY(90deg); */
+  cursor: pointer;
+  font-size: 1.2em;
+}
+
 .roomListRoom__joined {
   color: var(--color-light-gray);
   display: flex;
@@ -724,6 +737,8 @@ a {
 }
 
 .roomListRoom__topic {
+  color: var(--color-light-gray);
+  display: inline-block;
   padding: 5px 1.5rem;
   background-color: var(--color-dark-medium);
   border-radius: 5rem;
