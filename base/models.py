@@ -18,7 +18,7 @@ class User(AbstractUser):
 
 
 class Topic(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=20)
 
     def __str__(self):
         return self.name
@@ -56,11 +56,11 @@ class Message(models.Model):
     updated = models.DateTimeField(auto_now=True)
     # auto_now_add=True <=> сохраняет момент создания
     created = models.DateTimeField(auto_now_add=True)
-    # response_to = models.ForeignKey()
+    reply_to = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
         # задает сортировку объектов в коллекции по двум параметрам
-        ordering = ['-updated', '-created']
+        ordering = ['-created']
 
     def __str__(self):
         return self.body[:self.max_str_length]
