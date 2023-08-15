@@ -31,6 +31,7 @@
 
 html {
   font-size: 56.25%;
+  /* scroll-behavior: smooth; */
 }
 
 @media only screen and (min-width: 1200px) {
@@ -1159,7 +1160,7 @@ a {
   position: relative;
 }
 
-.input-wrapper input{
+.input-wrapper input {
   background: transparent;
   color: var(--color-light);
   border: none;
@@ -1167,7 +1168,7 @@ a {
   font-size: 1.4rem;
   font-weight: 500;
   resize: none;
-  flex: 1 ;
+  flex: 1;
 }
 
 /* cross clear button on a field */

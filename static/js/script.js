@@ -50,7 +50,11 @@ function scrollToElement(targetElement, scrollView) {
   if (targetElementRect.top < scrollViewRect.top || targetElementRect.bottom > scrollViewRect.bottom) {
     // scrollview отображает контент относительно родительского контейнера,
     // поэтому нужно учесть положение scrollview относительно родителя и вычесть его из положения целевого элемента
-    scrollView.scrollTop = targetElement.offsetTop - scrollView.offsetTop;
+    // scrollView.scrollTop = targetElement.offsetTop - scrollView.offsetTop;
+    scrollView.scroll({
+      top: targetElement.offsetTop - scrollView.offsetTop,
+      behavior: "smooth"
+    });
   }
 }
 
