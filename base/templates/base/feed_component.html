@@ -40,12 +40,28 @@
             {{room.participants.all.count}} Joined
         </a>
 
-        <div class="roomListRoom__votes">
-            <div class="upvote-arrow vote-arrow">&#x2191;</div>
-            <div class="upvotes-downvotes-count">
+        <div class="roomListRoom__votes" data-room-id="{{room.id}}">
+            <div class="upvote-arrow vote-arrow"
+                {% if request.user in room.upvotes.all %}
+                    data-vote-active-status="false"
+                {% else %}
+                    data-vote-active-status="true"
+                {% endif %}
+             >
+             &#x2191;
+            </div>
+            <div class="votes-count">
                 {{room.getvotes}}
             </div>
-            <div class="downvote-arrow vote-arrow">&#x2193</div>
+            <div class="downvote-arrow vote-arrow"
+                {% if request.user in room.downvotes.all %}
+                    data-vote-active-status="false"
+                {% else %}
+                    data-vote-active-status="true"
+                {% endif %}
+            >
+            &#x2193;
+            </div>
         </div>
 
         <div class="roomListRoom__topic-container">
