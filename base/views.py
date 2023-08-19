@@ -87,13 +87,17 @@ def home(request):
     # q = quote(q)
     # print(f'q unquoted=[{q}]')
 
-    rooms = Room.objects.filter(
-        Q(topics__name__icontains=q)
-        | Q(name__icontains=q)
-        | Q(description__icontains=q)
-        | Q(host__username__icontains=q)
-        | Q(host__name__icontains=q)
-    ).distinct()
+    rooms = (
+        Room.objects.filter(
+            Q(topics__name__icontains=q)
+            | Q(name__icontains=q)
+            | Q(description__icontains=q)
+            | Q(host__username__icontains=q)
+            | Q(host__name__icontains=q)
+        )
+        .distinct().annotate(votes=Count('upvotes')-Count('downvotes'))
+        .order_by('-votes')
+    )
 
     topics_count = Topic.objects.all().count()
     topics = Topic.objects.annotate(Count("rooms")).order_by("-rooms__count")[0:5]

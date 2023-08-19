@@ -26,26 +26,19 @@ function highlight(element, highlightClass, timeInterval = 1000) {
 
 // Element activity state
 function ActivityStateOn(element, attribute){
-  if (element.getAttribute(attribute) == 'false') {
+  if (element.getAttribute(attribute) == 'true') {
     element.classList.remove('non-active');
-    element.setAttribute('data-vote-active-status', 'true');
-  }
-}
-
-function ActivityStateOff(element, attribute){
-  if(element.getAttribute(attribute) == 'true'){
-    element.classList.add('non-active');
     element.setAttribute('data-vote-active-status', 'false');
   }
 }
 
 function toggleActivityState(element, attribute) {
   if (element.getAttribute(attribute) == 'true') {
-    element.classList.add('non-active');
+    element.classList.remove('non-active');
     element.setAttribute('data-vote-active-status', 'false');
   }
   else {
-    element.classList.remove('non-active');
+    element.classList.add('non-active');
     element.setAttribute('data-vote-active-status', 'true');
   }
 }
@@ -198,9 +191,11 @@ roomVotes.forEach(roomVote => {
   const roomDownvote = roomVote.querySelector('.downvote-arrow');
 
   if (roomUpvote) {
+    toggleActivityState(roomUpvote, 'data-vote-active-status')
     roomUpvote.addEventListener('click', () => voteClickProcessing(roomVote, 'upvote'));
   }
   if (roomDownvote) {
+    toggleActivityState(roomDownvote, 'data-vote-active-status')
     roomDownvote.addEventListener('click', () => voteClickProcessing(roomVote, 'downvote'));
   }
 })
