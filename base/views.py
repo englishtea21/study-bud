@@ -14,20 +14,6 @@ from .models import User, Room, Topic, Message
 from .forms import RoomForm, UserForm
 
 
-# rooms = [
-#     {'id': 1, 'name': 'Lets learn python!'},
-#     {'id': 2, 'name': 'Design with me'},
-#     {'id': 3, 'name': 'Backend developers'},
-# ]
-
-# def redirect_to_previous(request, times=1):
-#     previous_url = request.META.get('HTTP_REFERER')
-#     for i in range(times):
-#         previous_url = request.META.get('HTTP_REFERER', previous_url)
-#
-#     return redirect(previous_url)
-
-
 def login_page(request):
     page = "login"
 
@@ -95,8 +81,9 @@ def home(request):
             | Q(host__username__icontains=q)
             | Q(host__name__icontains=q)
         )
-        .distinct().annotate(votes=Count('upvotes')-Count('downvotes'))
-        .order_by('-votes')
+        .distinct()
+        .annotate(votes=Count("upvotes") - Count("downvotes"))
+        .order_by("-votes")
     )
 
     topics_count = Topic.objects.all().count()
