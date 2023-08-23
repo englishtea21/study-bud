@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from base.models import Room
@@ -31,6 +31,7 @@ def get_room(request, pk):
 
 
 @login_required(login_url="/login")
+@permission_required('vote_room')
 def toggle_upvote_room(request, *args, **kwargs):
     room = get_object_or_404(Room, pk=kwargs.get("pk"))
     user = request.user
@@ -43,6 +44,7 @@ def toggle_upvote_room(request, *args, **kwargs):
 
 
 @login_required(login_url="/login")
+@permission_required('vote_room')
 def toggle_downvote_room(request, *args, **kwargs):
     room = get_object_or_404(Room, pk=kwargs.get("pk"))
     user = request.user

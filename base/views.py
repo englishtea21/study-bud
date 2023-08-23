@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.db.models import Q, Count
 from django.contrib.auth import authenticate, login, logout
+from base.admin import admin
+# from base.permissions import add_default_permissions
 
 # для кастомной модели пользователя вместо встроенной формы регистрации будем использовать кастомную
 # from django.contrib.auth.forms import UserCreationForm
@@ -57,6 +59,9 @@ def register_page(request):
             user.username = user.username.lower()
             user.save()
             login(request, user)
+
+            # add_default_permissions(user)
+
             return redirect("home")
         else:
             messages.error(request, "An error occurred during registration")
@@ -67,6 +72,9 @@ def register_page(request):
 
 def home(request):
     # используется значение переменной q в GET запросе
+
+    if request.user.is_authenticated:
+        print(f'can add? {request.user.has_perm("base.add_topic")}')
 
     q = request.GET.get("q") if request.GET.get("q") is not None else ""
     # print(f'q not unquoted=[{q}]')
@@ -89,15 +97,28 @@ def home(request):
     topics_count = Topic.objects.all().count()
     topics = Topic.objects.annotate(Count("rooms")).order_by("-rooms__count")[0:5]
     room_count = rooms.count()
+
     # добавляем функционал поиска по ленте недавнего
-    rooms_messages = Message.objects.filter(Q(room__topics__name__icontains=q))
+    # лента недавнего показывает недавние сообщения, связанные с текущем юзером, если выполнен вход
+    recent_activities = Message.objects.filter(
+        (
+            Q(room__topics__name__icontains=q)
+            | Q(room__name__icontains=q)
+            | Q(room__description__icontains=q)
+            | Q(room__host__name__icontains=q)
+        )
+    )
+
+    if request.user.is_authenticated:
+        user_room_ids = request.user.rooms.values_list("id", flat=True)
+        recent_activities = recent_activities.filter(Q(room__in=user_room_ids))
 
     context = {
         "rooms": rooms,
         "topics": topics,
         "topics_count": topics_count,
         "room_count": room_count,
-        "rooms_messages": rooms_messages,
+        "recent_activities": recent_activities,
     }
     return render(request, "base/home.html", context)
 
@@ -194,10 +215,6 @@ def create_room(request):
 
     if request.method == "POST":
         topics_ids = request.POST.getlist("topics")
-
-        # максимальное количество тем: 5
-        # if len(topics_ids)>5:
-        #     return
 
         topics = []
 
