@@ -7,6 +7,9 @@ from django.http import HttpResponse
 from django.db.models import Q, Count
 from django.contrib.auth import authenticate, login, logout
 from base.admin import admin
+from django.views.generic import ListView
+from django.core.paginator import Paginator
+
 # from base.permissions import add_default_permissions
 
 # для кастомной модели пользователя вместо встроенной формы регистрации будем использовать кастомную
@@ -14,6 +17,39 @@ from base.admin import admin
 from base.forms import CustomUserCreationForm
 from .models import User, Room, Topic, Message
 from .forms import RoomForm, UserForm
+
+
+class FeedListView(ListView):
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search_param = (
+            self.request.GET.get("q") if self.request.GET.get("q") is not None else ""
+        )
+        queryset = (
+            queryset.filter(
+                Q(topics__name__icontains=search_param)
+                | Q(name__icontains=search_param)
+                | Q(description__icontains=search_param)
+                | Q(host__username__icontains=search_param)
+                | Q(host__name__icontains=search_param)
+            )
+            .distinct()
+            .annotate(votes=Count("upvotes") - Count("downvotes"))
+            .order_by("-votes")
+        )
+        return queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        paginator = Paginator(context['object_list'], 10)  # Разделение объектов на страницы по 10 элементов на странице
+        page_number = self.request.GET.get('page')  # Получение номера текущей страницы
+        page_obj = paginator.get_page(page_number)
+        context['page_obj'] = page_obj
+        return context
+
+    template_name = "feed_component.html"
+    context_object_name = "feed_objects"
+    queryset = Room.objects.all()
 
 
 def login_page(request):
@@ -76,10 +112,12 @@ def home(request):
     if request.user.is_authenticated:
         print(f'can add? {request.user.has_perm("base.add_topic")}')
 
-    q = request.GET.get("q") if request.GET.get("q") is not None else ""
+    # q = request.GET.get("q") if request.GET.get("q") is not None else ""
     # print(f'q not unquoted=[{q}]')
     # q = quote(q)
     # print(f'q unquoted=[{q}]')
+
+    feed_objects = FeedListView.as_view()(request)
 
     rooms = (
         Room.objects.filter(
