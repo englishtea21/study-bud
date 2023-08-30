@@ -19,37 +19,14 @@ from .models import User, Room, Topic, Message
 from .forms import RoomForm, UserForm
 
 
-class FeedListView(ListView):
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        search_param = (
-            self.request.GET.get("q") if self.request.GET.get("q") is not None else ""
-        )
-        queryset = (
-            queryset.filter(
-                Q(topics__name__icontains=search_param)
-                | Q(name__icontains=search_param)
-                | Q(description__icontains=search_param)
-                | Q(host__username__icontains=search_param)
-                | Q(host__name__icontains=search_param)
-            )
-            .distinct()
-            .annotate(votes=Count("upvotes") - Count("downvotes"))
-            .order_by("-votes")
-        )
-        return queryset
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        paginator = Paginator(context['object_list'], 10)  # Разделение объектов на страницы по 10 элементов на странице
-        page_number = self.request.GET.get('page')  # Получение номера текущей страницы
-        page_obj = paginator.get_page(page_number)
-        context['page_obj'] = page_obj
-        return context
+def is_ajax(request):
+    """
+    This utility function is used, as `request.is_ajax()` is deprecated.
 
-    template_name = "feed_component.html"
-    context_object_name = "feed_objects"
-    queryset = Room.objects.all()
+    This implements the previous functionality. Note that you need to
+    attach this header manually if using fetch.
+    """
+    return request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
 
 
 def login_page(request):
@@ -106,35 +83,57 @@ def register_page(request):
     return render(request, "base/login_register.html", context)
 
 
+# def feed(request):
+#     """
+#     List view for posts.
+#     """
+#     rooms = (
+#         Room.objects.filter(
+#             Q(topics__name__icontains=q)
+#             | Q(name__icontains=q)
+#             | Q(description__icontains=q)
+#             | Q(host__username__icontains=q)
+#             | Q(host__name__icontains=q)
+#         )
+#         .distinct()
+#         .annotate(votes=Count("upvotes") - Count("downvotes"))
+#         .order_by("-votes")
+#     )
+
+#     # Pagination
+
+#     page_number = request.GET.get("page")
+#     page_obj = paginator.get_page(page_number)
+
+#     paginator = Paginator(rooms, per_page=3)
+#     page_num = int(request.GET.get("page", 1))
+#     if page_num > paginator.num_pages:
+#         raise Http404
+#     posts = paginator.page(page_num)
+#     if is_ajax(request):
+#         return render(
+#             request, "feed_component.html", {"rooms": posts, "page_obj": page_obj}
+#         )
+#     return render(request, "post_list.html", {"posts": posts, "page_obj": page_obj})
+
+
 def home(request):
     # используется значение переменной q в GET запросе
 
     if request.user.is_authenticated:
         print(f'can add? {request.user.has_perm("base.add_topic")}')
 
-    # q = request.GET.get("q") if request.GET.get("q") is not None else ""
+    q = request.GET.get("q") if request.GET.get("q") is not None else ""
     # print(f'q not unquoted=[{q}]')
     # q = quote(q)
     # print(f'q unquoted=[{q}]')
 
-    feed_objects = FeedListView.as_view()(request)
+    # feed = FeedListView.as_view()(request)
+    # feed_objects_context = feed_objects.get_context_data()
 
-    rooms = (
-        Room.objects.filter(
-            Q(topics__name__icontains=q)
-            | Q(name__icontains=q)
-            | Q(description__icontains=q)
-            | Q(host__username__icontains=q)
-            | Q(host__name__icontains=q)
-        )
-        .distinct()
-        .annotate(votes=Count("upvotes") - Count("downvotes"))
-        .order_by("-votes")
-    )
-
+    # Topics
     topics_count = Topic.objects.all().count()
     topics = Topic.objects.annotate(Count("rooms")).order_by("-rooms__count")[0:5]
-    room_count = rooms.count()
 
     # добавляем функционал поиска по ленте недавнего
     # лента недавнего показывает недавние сообщения, связанные с текущем юзером, если выполнен вход
@@ -151,13 +150,43 @@ def home(request):
         user_room_ids = request.user.rooms.values_list("id", flat=True)
         recent_activities = recent_activities.filter(Q(room__in=user_room_ids))
 
+    rooms = (
+        Room.objects.filter(
+            Q(topics__name__icontains=q)
+            | Q(name__icontains=q)
+            | Q(description__icontains=q)
+            | Q(host__username__icontains=q)
+            | Q(host__name__icontains=q)
+        )
+        .distinct()
+        .annotate(votes=Count("upvotes") - Count("downvotes"))
+        .order_by("-votes")
+    )
+
+    # Pagination
+
+    page_num = int(request.GET.get("page", 1))
+    paginator = Paginator(rooms, per_page=2)
+
+    if page_num > paginator.num_pages:
+        raise Http404
+    posts = paginator.page(page_num)
+
     context = {
-        "rooms": rooms,
+        # "feed_objects": rooms,
+        "posts": posts,
         "topics": topics,
+        "feed_objects_count": rooms.count(),
         "topics_count": topics_count,
-        "room_count": room_count,
         "recent_activities": recent_activities,
     }
+
+    # render only changing from ajax
+    if is_ajax(request):
+        return render(
+            request, "base/feed_posts.html", {"posts": posts}
+        )
+
     return render(request, "base/home.html", context)
 
 

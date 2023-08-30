@@ -14,6 +14,24 @@ function scrollToElement(targetElement, scrollView) {
 }
 
 
+// Cookies
+function getCookie(name) {
+  var cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+      var cookie = jQuery.trim(cookies[i]);
+      // Does this cookie string begin with the name we want?
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+
 // Highlight animation
 function highlight(element, highlightClass, timeInterval = 1000) {
   element.classList.add(highlightClass);
@@ -25,7 +43,7 @@ function highlight(element, highlightClass, timeInterval = 1000) {
 
 
 // Element activity state
-function ActivityStateOn(element, attribute){
+function ActivityStateOn(element, attribute) {
   if (element.getAttribute(attribute) == 'true') {
     element.classList.remove('non-active');
     element.setAttribute('data-vote-active-status', 'false');
@@ -230,3 +248,55 @@ async function voteClickProcessing(voteSection, voteType) {
   xhrVoting.open('GET', `api/rooms/${roomId}/${voteType}_room/`);
   xhrVoting.send();
 }
+
+
+// infinite pagination
+const fetchPage = async (url) => {
+  return fetch(url,
+    {
+      method: 'GET',
+      credentials: 'same-origin',
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        // "X-CSRFToken": getCookie("csrftoken"),
+        // "X-CSRFToken": csrftoken,
+        "Accept": "application/json",
+        'Content-Type': 'text/html',
+      },
+    }
+    // headers
+  )
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  let sentinel = document.getElementById("sentinel");
+  // let previousSentinel = document.getElementsByClassName('previous-sentinel');
+  let scrollElement = document.getElementById("feed-infinite-container");
+  let counter = 2;
+  let end = false;
+
+  let sentinelObserver = new IntersectionObserver(async (entries) => {
+    entry = entries[0];
+    if (entry.intersectionRatio > 0 && !end) {
+      let url = `/?page=${counter}`;
+      let req = await fetchPage(url);
+      if (req.ok) {
+        let body = await req.text();
+        // Be careful of XSS if you do this. Make sure
+        // you remove all possible sources of XSS.
+        // console.log(body)
+        counter++;
+        scrollElement.innerHTML += body;
+      } else {
+        // If it returns a 404, stop requesting new items
+        end = true;
+      }
+    }
+  })
+  sentinelObserver.observe(sentinel);
+
+  // let previousSentinelObserver = new IntersectionObserver(async(entries)=>{
+  //   entry = entries[0];
+
+  // })
+})
