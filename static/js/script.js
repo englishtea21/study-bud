@@ -94,7 +94,7 @@ if (conversationThread) conversationThread.scrollBottom = conversationThread.scr
 class ClearButton {
   #clearButton;
   constructor(tag = 'span', html_class = 'clear-button', innerHTML = '&#10006;', field, onClearButton, ...args) {
-    // console.log(`tag=`);
+
     this.#clearButton = document.createElement(tag);
     this.#clearButton.className = html_class;
     this.#clearButton.innerHTML = innerHTML;
@@ -264,39 +264,58 @@ const fetchPage = async (url) => {
         'Content-Type': 'text/html',
       },
     }
-    // headers
   )
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  let sentinel = document.getElementById("sentinel");
-  // let previousSentinel = document.getElementsByClassName('previous-sentinel');
-  let scrollElement = document.getElementById("feed-infinite-container");
-  let counter = 2;
-  let end = false;
+// Infinite Pagination
 
-  let sentinelObserver = new IntersectionObserver(async (entries) => {
-    entry = entries[0];
-    if (entry.intersectionRatio > 0 && !end) {
-      let url = `/?page=${counter}`;
-      let req = await fetchPage(url);
-      if (req.ok) {
-        let body = await req.text();
-        // Be careful of XSS if you do this. Make sure
-        // you remove all possible sources of XSS.
-        // console.log(body)
-        counter++;
-        scrollElement.innerHTML += body;
-      } else {
-        // If it returns a 404, stop requesting new items
-        end = true;
+class InfinitePagination {
+  #scrollElement;
+  #sentinel;
+  #subdomain;
+  #observer;
+  #end;
+  #counter;
+
+  constructor(scrollElement, sentinel, subdomain) {
+    this.#scrollElement = scrollElement;
+    this.#sentinel = sentinel;
+    this.#subdomain = subdomain;
+    this.#end = false;
+    this.#counter = 2;
+
+    this.#observer = new IntersectionObserver(async (entries) => {
+      let entry = entries[0];
+      if (entry.intersectionRatio > 0 && !this.#end) {
+        let url = `${this.#subdomain}/?page=${this.#counter}`;
+        let req = await fetchPage(url);
+        if (req.ok) {
+          let body = await req.text();
+          // Be careful of XSS if you do this. Make sure
+          // you remove all possible sources of XSS.
+          // console.log(body)
+          this.#counter++;
+
+          this.#scrollElement.innerHTML += body;
+
+        } else {
+          // If it returns a 404, stop requesting new items
+          this.#end = true;
+        }
       }
-    }
-  })
-  sentinelObserver.observe(sentinel);
+    });
+    this.#observer.observe(this.#sentinel);
+  }
 
-  // let previousSentinelObserver = new IntersectionObserver(async(entries)=>{
-  //   entry = entries[0];
+  stopPagination(){
+    this.#observer.disconnect();
+  }
+}
 
-  // })
+document.addEventListener("DOMContentLoaded", () => {
+  let feedSentinel = document.getElementById("sentinel");
+  // let previousSentinel = document.getElementsByClassName('previous-sentinel');
+  let feedScrollElement = document.getElementById("feed-infinite-container");
+  feedInfinitePagination = new InfinitePagination(feedScrollElement, feedSentinel, subdomain = '');
+
 })
