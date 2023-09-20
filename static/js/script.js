@@ -116,7 +116,7 @@ const headerSearchFieldClearButton = new ClearButton(undefined, undefined, undef
 // console.log(headerSearchField);
 
 
-//Message reply
+//  Message reply
 const messageForm = document.querySelector('.room__message form');
 
 if (messageForm) {
@@ -168,6 +168,9 @@ if (messageForm) {
 
         messageReplyIdField.value = messageId;
 
+        // работает!
+        // console.log(messageReplyIdField.value);
+
         const messageUserInfo = message.querySelector('.thread__author');
         messageField.placeholder = `Write your message to ${messageUserInfo.querySelector('a span').innerText}, posted ${messageUserInfo.querySelector('.thread__date').innerText}`;
       });
@@ -182,6 +185,9 @@ if (messageForm) {
         highlight(message, 'highlight');
 
         messageEditIdField.value = messageId;
+
+        // работает!
+        // console.log(messageEditIdField.value);
 
         messageField.value = message.querySelector('.thread__details').innerText;
       })
@@ -248,74 +254,3 @@ async function voteClickProcessing(voteSection, voteType) {
   xhrVoting.open('GET', `api/rooms/${roomId}/${voteType}_room/`);
   xhrVoting.send();
 }
-
-
-// infinite pagination
-const fetchPage = async (url) => {
-  return fetch(url,
-    {
-      method: 'GET',
-      credentials: 'same-origin',
-      headers: {
-        "X-Requested-With": "XMLHttpRequest",
-        // "X-CSRFToken": getCookie("csrftoken"),
-        // "X-CSRFToken": csrftoken,
-        "Accept": "application/json",
-        'Content-Type': 'text/html',
-      },
-    }
-  )
-}
-
-// Infinite Pagination
-
-class InfinitePagination {
-  #scrollElement;
-  #sentinel;
-  #subdomain;
-  #observer;
-  #end;
-  #counter;
-
-  constructor(scrollElement, sentinel, subdomain) {
-    this.#scrollElement = scrollElement;
-    this.#sentinel = sentinel;
-    this.#subdomain = subdomain;
-    this.#end = false;
-    this.#counter = 2;
-
-    this.#observer = new IntersectionObserver(async (entries) => {
-      let entry = entries[0];
-      if (entry.intersectionRatio > 0 && !this.#end) {
-        let url = `${this.#subdomain}/?page=${this.#counter}`;
-        let req = await fetchPage(url);
-        if (req.ok) {
-          let body = await req.text();
-          // Be careful of XSS if you do this. Make sure
-          // you remove all possible sources of XSS.
-          // console.log(body)
-          this.#counter++;
-
-          this.#scrollElement.innerHTML += body;
-
-        } else {
-          // If it returns a 404, stop requesting new items
-          this.#end = true;
-        }
-      }
-    });
-    this.#observer.observe(this.#sentinel);
-  }
-
-  stopPagination(){
-    this.#observer.disconnect();
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  let feedSentinel = document.getElementById("sentinel");
-  // let previousSentinel = document.getElementsByClassName('previous-sentinel');
-  let feedScrollElement = document.getElementById("feed-infinite-container");
-  feedInfinitePagination = new InfinitePagination(feedScrollElement, feedSentinel, subdomain = '');
-
-})
