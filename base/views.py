@@ -165,27 +165,39 @@ def home(request):
 
     # Pagination
 
-    page_num = int(request.GET.get("page", 1))
-    paginator = Paginator(rooms, per_page=2)
+    to_paginate = [(rooms, 'page', 4, "posts"), (recent_activities, 'activitiesPage', 5, "activities")]
 
-    if page_num > paginator.num_pages:
-        raise Http404
-    posts = paginator.page(page_num)
+    paginated = {"posts": None, "activities": None}
+
+    for current_pagination in to_paginate:
+        page_num = int(request.GET.get(current_pagination[1], 1))
+        paginator = Paginator(current_pagination[0], per_page=current_pagination[2])
+
+        # page_num = int(request.GET.get("page", 1))
+        # paginator = Paginator(rooms, per_page=2)
+
+        if page_num > paginator.num_pages:
+            raise Http404
+        paginated[current_pagination[3]] = paginator.page(page_num)
 
     context = {
         # "feed_objects": rooms,
-        "posts": posts,
+        "posts": paginated["posts"],
         "topics": topics,
         "feed_objects_count": rooms.count(),
         "topics_count": topics_count,
-        "recent_activities": recent_activities,
+        "recent_activities": paginated["activities"],
     }
 
     # render only changing from ajax
     if is_ajax(request):
-        return render(
-            request, "base/feed_posts.html", {"posts": posts}
-        )
+        
+        # for pagination
+        
+        
+        
+        
+        return render(request, "base/feed_posts.html", {"posts": paginated["posts"]})
 
     return render(request, "base/home.html", context)
 
@@ -224,7 +236,7 @@ def room(request, pk):
                 # body - имя поля в форме с POST запросом
                 body=request.POST.get("body"),
                 # ответить можно только на то же сообщение в комнате
-                reply_to=rooms_messages.filter(id=reply_to_id).first(),
+                replyto=rooms_messages.filter(id=reply_to_id).first(),
             )
         elif edit_id is not None and reply_to_id is None:
             stored_message = rooms_messages.filter(id=edit_id).first()
