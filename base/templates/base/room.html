@@ -105,8 +105,8 @@
                                         </div>
                                         <span>@{{message.user.username}}</span>
                                     </a>
-                                    {% if message.reply_to is not None %}
-                                    <span class="message_link__reply_to" data-message-reply-to-id="{{message.reply_to.id}}">replied to {{message.reply_to.user}}</span>
+                                    {% if message.replyto %}
+                                    <span class="message_link__reply_to" data-message-reply-to-id="{{message.replyto.id}}">replied to {{message.replyto.user}}</span>
                                     {% endif %}
                                     <span class="thread__date">posted {{message.created|timesince}} ago</span>
                                     {% comment %} {% if message.updated is not None %}
@@ -194,6 +194,5 @@
         <!--  End -->
     </div>
 </main>
-<script src="script.js"></script>
 
 {% endblock  %}
