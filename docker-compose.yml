@@ -1,0 +1,32 @@
+version: latest
+
+services:
+  django:
+    build: .
+    container_name: study-bud 
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes: 
+    # Наша рабочая директория будет связана с корнем проекта - "."
+      - .:/usr/src/app 
+    ports:
+    # первое число - локальная машина
+    # вторая - виртуалка
+      - "8000:8000"
+    # указываем связь между сервисами
+    depends_on:
+      - postgresql
+  
+  postgresql:
+    image: postgres
+    environment:
+      - POSTGRES_DB=db
+      - POSTGRES_USER=simon
+      - POSTGRES_PASSWORD=14159265top
+    container_name: db
+    volumes:
+    # пишем папку, куда на виртуалке будет сохраняться вся инфа
+      - db:/var/lib/postgresql/data/
+
+volumes:
+# гарантируем существование папки db
+  db: null
