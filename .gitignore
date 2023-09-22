@@ -1,3 +1,6 @@
+# gitignore
+.gitignore
+
 # Byte-compiled / optimized / DLL files
 *.pyc
 base/__pycache__/
@@ -18,3 +21,10 @@ media/
 static/images/
 # Virtual environment
 env/
+
+# requirements
+requirements.txt
+
+# Docker
+Dockerfile
+docker-compose.yml
