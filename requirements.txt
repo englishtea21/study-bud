@@ -1,6 +1,0 @@
-django
-psycopg2
-djangorestframework
-django-cors-headers
-django-autocomplete-light
-pillow
