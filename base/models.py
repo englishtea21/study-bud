@@ -12,6 +12,11 @@ class User(AbstractUser):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username", "name"]
+    
+    class Meta:
+        permissions = [
+            ("vote_room", "Upvotes/Downvotes functionality on a room"),
+        ]
 
     def __str__(self):
         return str(self.username)
@@ -69,7 +74,7 @@ class Message(models.Model):
     updated = models.DateTimeField(auto_now=True)
     # auto_now_add=True <=> сохраняет момент создания
     created = models.DateTimeField(auto_now_add=True)
-    reply_to = models.ForeignKey(
+    replyto = models.ForeignKey(
         "self", null=True, blank=True, on_delete=models.SET_NULL
     )
 

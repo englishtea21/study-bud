@@ -6,6 +6,11 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.db.models import Q, Count
 from django.contrib.auth import authenticate, login, logout
+from base.admin import admin
+from django.views.generic import ListView
+from django.core.paginator import Paginator
+
+# from base.permissions import add_default_permissions
 
 # для кастомной модели пользователя вместо встроенной формы регистрации будем использовать кастомную
 # from django.contrib.auth.forms import UserCreationForm
@@ -14,18 +19,14 @@ from .models import User, Room, Topic, Message
 from .forms import RoomForm, UserForm
 
 
-# rooms = [
-#     {'id': 1, 'name': 'Lets learn python!'},
-#     {'id': 2, 'name': 'Design with me'},
-#     {'id': 3, 'name': 'Backend developers'},
-# ]
+def is_ajax(request):
+    """
+    This utility function is used, as `request.is_ajax()` is deprecated.
 
-# def redirect_to_previous(request, times=1):
-#     previous_url = request.META.get('HTTP_REFERER')
-#     for i in range(times):
-#         previous_url = request.META.get('HTTP_REFERER', previous_url)
-#
-#     return redirect(previous_url)
+    This implements the previous functionality. Note that you need to
+    attach this header manually if using fetch.
+    """
+    return request.META.get("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
 
 
 def login_page(request):
@@ -71,6 +72,9 @@ def register_page(request):
             user.username = user.username.lower()
             user.save()
             login(request, user)
+
+            # add_default_permissions(user)
+
             return redirect("home")
         else:
             messages.error(request, "An error occurred during registration")
@@ -79,13 +83,72 @@ def register_page(request):
     return render(request, "base/login_register.html", context)
 
 
+# def feed(request):
+#     """
+#     List view for posts.
+#     """
+#     rooms = (
+#         Room.objects.filter(
+#             Q(topics__name__icontains=q)
+#             | Q(name__icontains=q)
+#             | Q(description__icontains=q)
+#             | Q(host__username__icontains=q)
+#             | Q(host__name__icontains=q)
+#         )
+#         .distinct()
+#         .annotate(votes=Count("upvotes") - Count("downvotes"))
+#         .order_by("-votes")
+#     )
+
+#     # Pagination
+
+#     page_number = request.GET.get("page")
+#     page_obj = paginator.get_page(page_number)
+
+#     paginator = Paginator(rooms, per_page=3)
+#     page_num = int(request.GET.get("page", 1))
+#     if page_num > paginator.num_pages:
+#         raise Http404
+#     posts = paginator.page(page_num)
+#     if is_ajax(request):
+#         return render(
+#             request, "feed_component.html", {"rooms": posts, "page_obj": page_obj}
+#         )
+#     return render(request, "post_list.html", {"posts": posts, "page_obj": page_obj})
+
+
 def home(request):
     # используется значение переменной q в GET запросе
+
+    if request.user.is_authenticated:
+        print(f'can add? {request.user.has_perm("base.add_topic")}')
 
     q = request.GET.get("q") if request.GET.get("q") is not None else ""
     # print(f'q not unquoted=[{q}]')
     # q = quote(q)
     # print(f'q unquoted=[{q}]')
+
+    # feed = FeedListView.as_view()(request)
+    # feed_objects_context = feed_objects.get_context_data()
+
+    # Topics
+    topics_count = Topic.objects.all().count()
+    topics = Topic.objects.annotate(Count("rooms")).order_by("-rooms__count")[0:5]
+
+    # добавляем функционал поиска по ленте недавнего
+    # лента недавнего показывает недавние сообщения, связанные с текущем юзером, если выполнен вход
+    recent_activities = Message.objects.filter(
+        (
+            Q(room__topics__name__icontains=q)
+            | Q(room__name__icontains=q)
+            | Q(room__description__icontains=q)
+            | Q(room__host__name__icontains=q)
+        )
+    )
+
+    if request.user.is_authenticated:
+        user_room_ids = request.user.rooms.values_list("id", flat=True)
+        recent_activities = recent_activities.filter(Q(room__in=user_room_ids))
 
     rooms = (
         Room.objects.filter(
@@ -95,23 +158,47 @@ def home(request):
             | Q(host__username__icontains=q)
             | Q(host__name__icontains=q)
         )
-        .distinct().annotate(votes=Count('upvotes')-Count('downvotes'))
-        .order_by('-votes')
+        .distinct()
+        .annotate(votes=Count("upvotes") - Count("downvotes"))
+        .order_by("-votes")
     )
 
-    topics_count = Topic.objects.all().count()
-    topics = Topic.objects.annotate(Count("rooms")).order_by("-rooms__count")[0:5]
-    room_count = rooms.count()
-    # добавляем функционал поиска по ленте недавнего
-    rooms_messages = Message.objects.filter(Q(room__topics__name__icontains=q))
+    # Pagination
+
+    to_paginate = [(rooms, 'page', 4, "posts"), (recent_activities, 'activitiesPage', 5, "activities")]
+
+    paginated = {"posts": None, "activities": None}
+
+    for current_pagination in to_paginate:
+        page_num = int(request.GET.get(current_pagination[1], 1))
+        paginator = Paginator(current_pagination[0], per_page=current_pagination[2])
+
+        # page_num = int(request.GET.get("page", 1))
+        # paginator = Paginator(rooms, per_page=2)
+
+        if page_num > paginator.num_pages:
+            raise Http404
+        paginated[current_pagination[3]] = paginator.page(page_num)
 
     context = {
-        "rooms": rooms,
+        # "feed_objects": rooms,
+        "posts": paginated["posts"],
         "topics": topics,
+        "feed_objects_count": rooms.count(),
         "topics_count": topics_count,
-        "room_count": room_count,
-        "rooms_messages": rooms_messages,
+        "recent_activities": paginated["activities"],
     }
+
+    # render only changing from ajax
+    if is_ajax(request):
+        
+        # for pagination
+        
+        
+        
+        
+        return render(request, "base/feed_posts.html", {"posts": paginated["posts"]})
+
     return render(request, "base/home.html", context)
 
 
@@ -149,7 +236,7 @@ def room(request, pk):
                 # body - имя поля в форме с POST запросом
                 body=request.POST.get("body"),
                 # ответить можно только на то же сообщение в комнате
-                reply_to=rooms_messages.filter(id=reply_to_id).first(),
+                replyto=rooms_messages.filter(id=reply_to_id).first(),
             )
         elif edit_id is not None and reply_to_id is None:
             stored_message = rooms_messages.filter(id=edit_id).first()
@@ -207,10 +294,6 @@ def create_room(request):
 
     if request.method == "POST":
         topics_ids = request.POST.getlist("topics")
-
-        # максимальное количество тем: 5
-        # if len(topics_ids)>5:
-        #     return
 
         topics = []
 

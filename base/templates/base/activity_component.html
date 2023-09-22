@@ -2,25 +2,25 @@
     <div class="activities__header">
         <h2>Recent Activities</h2>
     </div>
-    {% for message in rooms_messages %}
-    <div class="activities__box">
+    {% for activity in recent_activities %}
+    <div class="activities__box" id="activities-infinite-container">
         <div class="activities__boxHeader roomListRoom__header">
-            <a href="{% url 'user-profile' message.user.id %}" class="roomListRoom__author">
+            <a href="{% url 'user-profile' activity.user.id %}" class="roomListRoom__author">
                 <div class="avatar avatar--small">
-                    {% if message.user.profile_picture %}
-                    <img src="{{message.user.profile_picture.url}}"/>
+                    {% if activity.user.profile_picture %}
+                    <img src="{{activity.user.profile_picture.url}}"/>
                     {% else %}
                     <img src="/static/images/avatar.svg/"/>
                     {% endif %}
                 </div>
                 <p>
-                    @{{message.user.username}}
-                    <span>{{message.created|timesince}} ago</span>
+                    @{{activity.user.username}}
+                    <span>{{activity.created|timesince}} ago</span>
                 </p>
             </a>
-            {% if request.user == message.user %}
+            {% if request.user == activity.user %}
             <div class="roomListRoom__actions">
-                <a href="{% url 'delete-message' message.id %}">
+                <a href="{% url 'delete-message' activity.id %}">
                     <svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="32" height="32"
                          viewBox="0 0 32 32">
                         <title>remove</title>
@@ -33,10 +33,10 @@
             {% endif %}
         </div>
         <div class="activities__boxContent">
-            <p>replied to post “<a href="{% url 'room' message.room.id %}">{{message.room}}</a>”</p>
+            <p>replied to post “<a href="{% url 'room' activity.room.id %}">{{activity.room}}</a>”</p>
             <div class="activities__boxRoomContent">
-                {{message}}
-                {% if message.body|length > message.max_str_length %}
+                {{activity}}
+                {% if activity.body|length > activity.max_str_length %}
                 ...
                 {% endif %}
             </div>

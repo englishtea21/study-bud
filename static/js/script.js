@@ -14,6 +14,24 @@ function scrollToElement(targetElement, scrollView) {
 }
 
 
+// Cookies
+function getCookie(name) {
+  var cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+      var cookie = jQuery.trim(cookies[i]);
+      // Does this cookie string begin with the name we want?
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+
 // Highlight animation
 function highlight(element, highlightClass, timeInterval = 1000) {
   element.classList.add(highlightClass);
@@ -25,7 +43,7 @@ function highlight(element, highlightClass, timeInterval = 1000) {
 
 
 // Element activity state
-function ActivityStateOn(element, attribute){
+function ActivityStateOn(element, attribute) {
   if (element.getAttribute(attribute) == 'true') {
     element.classList.remove('non-active');
     element.setAttribute('data-vote-active-status', 'false');
@@ -76,7 +94,7 @@ if (conversationThread) conversationThread.scrollBottom = conversationThread.scr
 class ClearButton {
   #clearButton;
   constructor(tag = 'span', html_class = 'clear-button', innerHTML = '&#10006;', field, onClearButton, ...args) {
-    // console.log(`tag=`);
+
     this.#clearButton = document.createElement(tag);
     this.#clearButton.className = html_class;
     this.#clearButton.innerHTML = innerHTML;
@@ -98,7 +116,7 @@ const headerSearchFieldClearButton = new ClearButton(undefined, undefined, undef
 // console.log(headerSearchField);
 
 
-//Message reply
+//  Message reply
 const messageForm = document.querySelector('.room__message form');
 
 if (messageForm) {
@@ -150,6 +168,9 @@ if (messageForm) {
 
         messageReplyIdField.value = messageId;
 
+        // работает!
+        // console.log(messageReplyIdField.value);
+
         const messageUserInfo = message.querySelector('.thread__author');
         messageField.placeholder = `Write your message to ${messageUserInfo.querySelector('a span').innerText}, posted ${messageUserInfo.querySelector('.thread__date').innerText}`;
       });
@@ -164,6 +185,9 @@ if (messageForm) {
         highlight(message, 'highlight');
 
         messageEditIdField.value = messageId;
+
+        // работает!
+        // console.log(messageEditIdField.value);
 
         messageField.value = message.querySelector('.thread__details').innerText;
       })
